@@ -1,3 +1,3 @@
 .PHONY: test
 test:
-	PYTHONPATH=/app pytest
+	cd app && PYTHONPATH=. pytest
