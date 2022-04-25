@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Body, HTTPException, Request, status
 from fastapi.responses import JSONResponse
-from .login import get_current_user
+from ..deps import get_current_user
 from models.Profile import Profile, ProfileCreate
 from fastapi.encoders import jsonable_encoder
 from db import db

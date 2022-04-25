@@ -15,7 +15,7 @@ app = FastAPI(title="SmartFit",
 app.include_router(api.api_router)
 
 
-app.add_middleware(CustomHeaderMiddleware)
+# app.add_middleware(CustomHeaderMiddleware) # This is for adding custom header to all response
 
 
 @app.on_event("startup")

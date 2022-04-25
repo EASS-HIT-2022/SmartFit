@@ -7,7 +7,7 @@ from models.Menu import Menu, MenuBase
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from db import db
-from .login import get_current_user
+from ..deps import get_current_user
 
 router = APIRouter()
 

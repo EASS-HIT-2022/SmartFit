@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Body, HTTPException, status, Request
 from models.Exercise import Exercise
-from .login import get_current_user
+from ..deps import get_current_user
 from models.Workout import Workout, WorkoutCreate
 from fastapi.encoders import jsonable_encoder
 from db import db

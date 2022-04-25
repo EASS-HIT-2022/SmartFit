@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from .endpoints import login, signup, profile, exrecise, food, workout, menu
-from .endpoints.login import oauth_scheme
+from .deps import oauth_scheme
 
 api_router = APIRouter()
 api_router.include_router(login.router)
