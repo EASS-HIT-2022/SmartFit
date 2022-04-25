@@ -9,17 +9,17 @@ router = APIRouter()
 
 
 @router.get("/api/api_v1/profile", tags=['Profile'], response_model=Profile, description='Get my profile details')
-async def my_profile(request: Request):
-    user = await get_current_user(request.headers['Authorization'].split(' ')[1])
+async def my_profile(request: Request) -> JSONResponse:
+    user = await get_current_user(request.headers['Authorization'])
     if (profile := await db.get_collection("profile").find_one({"user_id": user.id})) is not None:
-        return profile
+        return JSONResponse(status_code=status.HTTP_200_OK, content=profile)
     raise HTTPException(
         status_code=404, detail=f"profile for current user not found")
 
 
 @ router.post("/api/api_v1/profile/new", tags=["Profile"], description='Add a new profile')
-async def my_profile_create(request: Request, profile: ProfileCreate = Body(...)):
-    user = await get_current_user(request.headers['Authorization'].split(' ')[1])
+async def my_profile_create(request: Request, profile: ProfileCreate = Body(...)) -> JSONResponse:
+    user = await get_current_user(request.headers['Authorization'])
     if (profile_ := await db.get_collection("profile").find_one({"user_id": user.id})) is not None:
         raise HTTPException(
             status_code=404, detail=f"profile for user {user.id} already exists")

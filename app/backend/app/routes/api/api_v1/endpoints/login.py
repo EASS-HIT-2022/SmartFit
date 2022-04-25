@@ -1,5 +1,6 @@
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
+from fastapi.responses import JSONResponse
 from typing import Optional
 from pydantic import BaseModel
 from datetime import datetime, timedelta
@@ -78,6 +79,9 @@ async def get_current_user(token: str = Depends(oauth_scheme)):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
+        if not token.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Invalid token")
+        token = token[7:]
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         if email is None:
@@ -98,7 +102,7 @@ async def get_current_active_user(current_user: UserInDBBase = Depends(get_curre
 
 
 @router.post("/api/api_v1/token", tags=["Login"], description='Provides an acsses token for one user, please login for FaspApi Authorize button', response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -> JSONResponse:
     user = await authenticate_user(
         form_data.username, form_data.password)
     if not user:
@@ -111,9 +115,9 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return JSONResponse(status_code=status.HTTP_201_CREATED, content={"access_token": access_token, "token_type": "bearer"})
 
 
 @router.get("/api/api_v1/users/me/", tags=["Login"], description='User Creation', response_model=UserInDBBase)
-async def read_users_me(current_user: UserInDBBase = Depends(get_current_active_user)):
-    return current_user
+async def read_users_me(current_user: UserInDBBase = Depends(get_current_active_user)) -> JSONResponse:
+    return JSONResponse(status_code=status.HTTP_200_OK, content=current_user)
