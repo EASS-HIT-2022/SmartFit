@@ -2,14 +2,13 @@ from datetime import datetime
 from typing import List
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
 from fastapi.encoders import jsonable_encoder
-from requests import request
 from models.User import UserInDBBase
 from models.Food import Food
 from models.Menu import Menu
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from db import db
-from ..deps import get_current_active_user, get_current_user
+from ..deps import get_current_active_user
 
 router = APIRouter()
 

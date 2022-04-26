@@ -3,5 +3,8 @@ pydantic
 fastapi
 uvicorn
 motor
-"python-jose[cryptography]"
-"passlib[bcrypt]"
+python-jose[cryptography]
+passlib[bcrypt]
+pydantic[email]
+python-multipart
+requests

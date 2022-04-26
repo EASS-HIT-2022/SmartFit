@@ -5,12 +5,11 @@ import motor.core
 import asyncio
 import logging
 from motor.motor_asyncio import AsyncIOMotorClient
-from motor.motor_tornado import MotorDatabase
 
 
 class MongoManager:
     client: AsyncIOMotorClient = None
-    db: MotorDatabase = None
+    db = None
 
     async def connect_to_database(self, path: str, db_name: str):
         logging.info("Connecting to MongoDB.")
