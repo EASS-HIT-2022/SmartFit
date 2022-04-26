@@ -9,7 +9,7 @@ class Exercise(BaseModel):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
     name: str = Field(...)
     alternatives: conlist(Exercise, min_items=0,
-                          max_items=10, unique_items=True) = None
+                          max_items=10, unique_items=True) = []
     favorite: Optional[bool] = False
     target_muscles: List[str] = None
     Instructions: str = None

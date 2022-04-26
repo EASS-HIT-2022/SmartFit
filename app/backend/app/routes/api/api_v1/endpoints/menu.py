@@ -1,13 +1,15 @@
 from datetime import datetime
 from typing import List
-from fastapi import APIRouter, Body, HTTPException, Request, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
 from fastapi.encoders import jsonable_encoder
+from requests import request
+from models.User import UserInDBBase
 from models.Food import Food
-from models.Menu import Menu, MenuBase
+from models.Menu import Menu
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from db import db
-from ..deps import get_current_user
+from ..deps import get_current_active_user, get_current_user
 
 router = APIRouter()
 
@@ -26,16 +28,15 @@ def calc_menu_data(menu: Menu):
     return menu
 
 
-@router.get("/api/api_v1/nutrition/menu", tags=["Menu"], description='Get my menu details')
-async def my_menu(request: Request) -> JSONResponse:
-    user = await get_current_user(request.headers['Authorization'])
-    if (menu := await db.get_collection("menu").find_one({"user_id": user.id})) is not None:
+@router.get("/", tags=["Menu"], description='Get my menu details')
+async def my_menu(current_user: UserInDBBase = Depends(get_current_active_user)) -> JSONResponse:
+    if (menu := await db.get_collection("menu").find_one({"user_id": current_user.id})) is not None:
         return JSONResponse(status_code=status.HTTP_200_OK, content=menu)
     raise HTTPException(
         status_code=404, detail=f"menu for current user not found")
 
 
-@router.get("/api/api_v1/{userid}/menu", tags=["Menu"], description="Get user's menu details")
+@router.get("/{userid}", tags=["Menu"], description="Get user's menu details")
 async def user_menu(userid: str) -> JSONResponse:
     if (menu := await db.get_collection("menu").find_one({"user_id": userid})) is not None:
         return JSONResponse(status_code=status.HTTP_200_OK, content=menu)
@@ -43,21 +44,20 @@ async def user_menu(userid: str) -> JSONResponse:
         status_code=404, detail=f"menu for user {userid} not found")
 
 
-@ router.delete("/api/api_v1/nutrition/menu", tags=["Menu"], description="Delete my menu")
-async def my_menu_delete(request: Request) -> JSONResponse:
-    user = await get_current_user(request.headers['Authorization'])
-    if (menu := await db.get_collection("menu").find_one({"user_id": user.id})) is not None:
-        await db.get_collection("menu").delete_one({"user_id": user.id})
+@ router.delete("/", tags=["Menu"], description="Delete my menu")
+async def my_menu_delete(current_user: UserInDBBase = Depends(get_current_active_user)) -> JSONResponse:
+    if (menu := await db.get_collection("menu").find_one({"user_id": current_user.id})) is not None:
+        await db.get_collection("menu").delete_one({"user_id": current_user.id})
         return JSONResponse(
-            status_code=201, content=f"menu for user {user.id} deleted")
+            status_code=201, content=f"menu for user {current_user.id} deleted")
     raise HTTPException(
-        status_code=404, detail=f"menu for user {user.id} not found")
+        status_code=404, detail=f"menu for user {current_user.id} not found")
 
 
-@ router.post("/api/api_v1/nutrition/menu/add_food", tags=["Menu"], description="Add food to menu")
-async def add_food_to_menu(request: Request, food: List[Food] = Body(...)) -> JSONResponse:
+@ router.post("/add_food", tags=["Menu"], description="Add food to menu")
+async def add_food_to_menu(current_user: UserInDBBase = Depends(get_current_active_user), food: List[Food] = Body(...)) -> JSONResponse:
     try:
-        menu = await my_menu(request)
+        menu = await my_menu(current_user)
     except HTTPException as e:
         raise HTTPException(
             status_code=404, detail=f"menu for current user not found")
@@ -73,10 +73,10 @@ async def add_food_to_menu(request: Request, food: List[Food] = Body(...)) -> JS
         raise HTTPException(status_code=404, detail=f"Menu couldnt be updated")
 
 
-@ router.delete("/api/api_v1/nutrition/menu/delete_food", tags=["Menu"], description="Delete food from menu")
-async def delete_food_from_menu(request: Request, food_id: str) -> JSONResponse:
+@ router.delete("/delete_food", tags=["Menu"], description="Delete food from menu")
+async def delete_food_from_menu(food_id: str,current_user: UserInDBBase = Depends(get_current_active_user)) -> JSONResponse:
     try:
-        menu = await my_menu(request)
+        menu = await my_menu(current_user)
     except HTTPException as e:
         raise HTTPException(
             status_code=404, detail=f"menu for current user not found")
@@ -92,14 +92,13 @@ async def delete_food_from_menu(request: Request, food_id: str) -> JSONResponse:
             status_code=404, detail=f"Menu couldnt be updated")
 
 
-@ router.post("/api/api_v1/nutrition/menu/add_menu", tags=["Menu"], description="Add Menu")
-async def add_menu(request: Request) -> JSONResponse:
-    user = await get_current_user(request.headers['Authorization'])
-    if (menu := await db.get_collection("menu").find_one({"user_id": user.id})) is not None:
+@ router.post("/add_menu", tags=["Menu"], description="Add Menu")
+async def add_menu(current_user: UserInDBBase = Depends(get_current_active_user)) -> JSONResponse:
+    if (menu := await db.get_collection("menu").find_one({"user_id": current_user.id})) is not None:
         raise HTTPException(
-            status_code=404, detail=f"menu for user {user.id} already exists")
+            status_code=404, detail=f"menu for user {current_user.id} already exists")
     menu_data = jsonable_encoder(
-        Menu(user_id=user.id, foods=[], date=datetime.now()))
+        Menu(user_id=current_user.id, foods=[], date=datetime.now()))
     new_menu_data = await db.get_collection("menu").insert_one(menu_data)
     created_menu = await db.get_collection("menu").find_one(
         {"_id": new_menu_data.inserted_id}

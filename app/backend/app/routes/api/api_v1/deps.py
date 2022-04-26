@@ -1,15 +1,16 @@
 
-from fastapi import Depends, HTTPException,status
-from core.secuirty import TokenData
+from fastapi import Depends, HTTPException, status
+from core.secuirty import TokenData, SECRET_KEY, ALGORITHM, get_user
+from core.config import settings
 from models.User import UserInDBBase
-from core.secuirty import get_user
-from core.secuirty import SECRET_KEY, ALGORITHM
 from fastapi import HTTPException, status
 from jose import jwt
 from jose.exceptions import JWTError
 from fastapi.security import OAuth2PasswordBearer
+from fastapi import APIRouter, Depends, HTTPException, status
 
-oauth_scheme = OAuth2PasswordBearer(tokenUrl='/api/api_v1/token')
+oauth_scheme = OAuth2PasswordBearer(
+    tokenUrl=f'{settings.API_V1_STR}/login/acsses_token')
 
 
 async def get_current_user(token: str = Depends(oauth_scheme)):
@@ -19,9 +20,6 @@ async def get_current_user(token: str = Depends(oauth_scheme)):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        if not token.startswith("Bearer "):
-            raise HTTPException(status_code=401, detail="Invalid token")
-        token = token[7:]
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         if email is None:

@@ -9,7 +9,7 @@ from db import db
 router = APIRouter()
 
 
-@router.post("/api/api_v1/signup", tags=["Sign up"], description='User Creation')
+@router.post("/", tags=["Sign up"], description='User Creation')
 async def signup(user: UserCreate = Body(...)) -> JSONResponse:
     if (userindb := await db.get_collection("users").find_one({"email": user.email})) is not None:
         raise HTTPException(

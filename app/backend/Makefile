@@ -1,3 +1,3 @@
 .PHONY: test
 test:
-	cd app && PYTHONPATH=. pytest
+	cd app && PYTHONPATH=. pytest --asyncio-mode='auto' -s

@@ -1,3 +1,8 @@
+from motor.motor_asyncio import (
+    AsyncIOMotorClient as MotorClient,
+)
+import motor.core
+import asyncio
 import logging
 from motor.motor_asyncio import AsyncIOMotorClient
 from motor.motor_tornado import MotorDatabase
@@ -7,9 +12,10 @@ class MongoManager:
     client: AsyncIOMotorClient = None
     db: MotorDatabase = None
 
-    def connect_to_database(self, path: str, db_name: str):
+    async def connect_to_database(self, path: str, db_name: str):
         logging.info("Connecting to MongoDB.")
         self.client = AsyncIOMotorClient(path)
+        self.client.get_io_loop = asyncio.get_running_loop
         self.db = self.client[db_name]
         logging.info("Connected to MongoDB.")
 
@@ -18,9 +24,7 @@ class MongoManager:
         self.client.close()
         logging.info("Closed connection with MongoDB.")
 
-    def get_users(self):
-        users_query = self.db.users.find({}, {'_id': 0})
-        return list(users_query)
-
     def get_collection(self, collection_name: str):
         return self.db[collection_name]
+
+

@@ -9,7 +9,7 @@ from ..deps import get_current_active_user
 router = APIRouter()
 
 
-@router.post("/api/api_v1/token", tags=["Login"], description='Provides an acsses token for one user, please login for FaspApi Authorize button', response_model=Token)
+@router.post("/acsses_token", tags=["Login"], description='Provides an acsses token for one user, please login for FaspApi Authorize button', response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -> JSONResponse:
     user = await authenticate_user(
         form_data.username, form_data.password)
@@ -26,6 +26,6 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     return JSONResponse(status_code=status.HTTP_201_CREATED, content={"access_token": access_token, "token_type": "bearer"})
 
 
-@router.get("/api/api_v1/users/me/", tags=["Login"], description='User Creation', response_model=UserInDBBase)
+@router.get("/me", tags=["Login"], description='User Creation', response_model=UserInDBBase)
 async def read_users_me(current_user: UserInDBBase = Depends(get_current_active_user)) -> JSONResponse:
     return JSONResponse(status_code=status.HTTP_200_OK, content=current_user)

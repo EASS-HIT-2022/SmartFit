@@ -38,7 +38,6 @@ def get_password_hash(password):
 
 async def get_user(email: str, db=db):
     user_dict = await db.get_collection("users").find_one({"email": email})
-
     if user_dict is not None:
         return UserInDBBase(**user_dict)
     else:

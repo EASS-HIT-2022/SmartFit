@@ -1,7 +1,8 @@
 from typing import List
-from fastapi import APIRouter, Body, HTTPException, status, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, status, Request
+from models.User import UserInDBBase
 from models.Exercise import Exercise
-from ..deps import get_current_user
+from ..deps import get_current_active_user
 from models.Workout import Workout, WorkoutCreate
 from fastapi.encoders import jsonable_encoder
 from db import db
@@ -10,16 +11,15 @@ from fastapi.responses import JSONResponse
 router = APIRouter()
 
 
-@router.get("/api/api_v1/workout", tags=["Workout"], description='Get my workout details')
-async def my_workout(request: Request) -> JSONResponse:
-    user = await get_current_user(request.headers['Authorization'])
-    if (workout := await db.get_collection("workout").find_one({"user_id": user.id})) is not None:
+@router.get("/", tags=["Workout"], description='Get my workout details')
+async def my_workout(current_user: UserInDBBase = Depends(get_current_active_user)) -> JSONResponse:
+    if (workout := await db.get_collection("workout").find_one({"user_id": current_user.id})) is not None:
         return JSONResponse(status_code=status.HTTP_200_OK, content=workout)
     raise HTTPException(
         status_code=404, detail="workout for current user not found")
 
 
-@router.get("/api/api_v1/{userid}/workout", tags=["Workout"], description="Get user's workout details")
+@router.get("/{userid}", tags=["Workout"], description="Get user's workout details")
 async def user_workout(userid: str) -> JSONResponse:
     if (workout := await db.get_collection("workout").find_one({"user_id": userid})) is not None:
         return JSONResponse(status_code=status.HTTP_200_OK, content=workout)
@@ -27,13 +27,12 @@ async def user_workout(userid: str) -> JSONResponse:
         status_code=404, detail=f"workout for user {userid} not found")
 
 
-@router.post("/api/api_v1/workout", tags=["Workout"], description="create a workout")
-async def create_workout(request: Request, workout: WorkoutCreate) -> JSONResponse:
-    user = await get_current_user(request.headers['Authorization'])
-    if (workout_ := await db.get_collection("workout").find_one({"user_id": user.id})) is not None:
+@router.post("/create", tags=["Workout"], description="create a workout")
+async def create_workout(workout: WorkoutCreate,current_user: UserInDBBase = Depends(get_current_active_user)) -> JSONResponse:
+    if (workout_ := await db.get_collection("workout").find_one({"user_id": current_user.id})) is not None:
         raise HTTPException(
-            status_code=404, detail=f"workout for user {user.id} already exists")
-    user_workout = jsonable_encoder(Workout(**workout.dict(), user_id=user.id))
+            status_code=404, detail=f"workout for user {current_user.id} already exists")
+    user_workout = jsonable_encoder(Workout(**workout.dict(), user_id=current_user.id))
     user_workout_res = await db.get_collection("workout").insert_one(user_workout)
     create_workout = await db.get_collection("workout").find_one(
         {"_id": user_workout_res.inserted_id}
@@ -44,10 +43,10 @@ async def create_workout(request: Request, workout: WorkoutCreate) -> JSONRespon
         status_code=404, detail=f"Workout couldnt be created")
 
 
-@router.post("/api/api_v1/workout/add_exercises", tags=["Workout"], description="Add an exercise to a workout")
-async def add_exrecise_to_workout(request: Request, exercises: List[Exercise] = Body(...)) -> JSONResponse:
+@router.post("/add_exercises", tags=["Workout"], description="Add an exercise to a workout")
+async def add_exrecise_to_workout(current_user: UserInDBBase = Depends(get_current_active_user), exercises: List[Exercise] = Body(...)) -> JSONResponse:
     try:
-        workout = await my_workout(request)
+        workout = await my_workout(current_user)
     except HTTPException as e:
         raise HTTPException(
             status_code=404, detail=f"workout for current user not found")
@@ -62,10 +61,10 @@ async def add_exrecise_to_workout(request: Request, exercises: List[Exercise] = 
             status_code=404, detail=f"workout couldnt be updated")
 
 
-@router.delete("/api/api_v1/workout/delete_exercise", tags=["Workout"], description="delete an exercise from a workout")
-async def delete_exrecise_from_workout(request: Request, exercise_id: str) -> JSONResponse:
+@router.delete("/delete_exercise", tags=["Workout"], description="delete an exercise from a workout")
+async def delete_exrecise_from_workout(exercise_id: str,current_user: UserInDBBase = Depends(get_current_active_user)) -> JSONResponse:
     try:
-        workout = await my_workout(request)
+        workout = await my_workout(current_user)
     except HTTPException as e:
         raise HTTPException(
             status_code=404, detail=f"workout for current user not found")
@@ -83,9 +82,9 @@ async def delete_exrecise_from_workout(request: Request, exercise_id: str) -> JS
             status_code=404, detail=f"workout couldnt be updated")
 
 
-@router.patch("/api/api_v1/workout", tags=["Workout"], description="Update a workout")
-async def my_workout_update(request: Request, workout: WorkoutCreate = Body(...)) -> JSONResponse:
-    my_work = await my_workout(request)
+@router.patch("/", tags=["Workout"], description="Update a workout")
+async def my_workout_update(current_user: UserInDBBase = Depends(get_current_active_user), workout: WorkoutCreate = Body(...)) -> JSONResponse:
+    my_work = await my_workout(current_user)
     my_stored_workout = Workout(**my_work)
     update_data = workout.dict(exclude_unset=True)
     updated_workout = my_stored_workout.copy(update=update_data)
@@ -98,9 +97,9 @@ async def my_workout_update(request: Request, workout: WorkoutCreate = Body(...)
     return JSONResponse(status_code=status.HTTP_200_OK, content=workout_updated)
 
 
-@router.delete("/api/api_v1/workout", tags=["Workout"], description="Delete my workout")
-async def my_workout_delete(request: Request):
-    my_workout_ = await my_workout(request)
+@router.delete("/", tags=["Workout"], description="Delete my workout")
+async def my_workout_delete(current_user: UserInDBBase = Depends(get_current_active_user)):
+    my_workout_ = await my_workout(current_user)
     if (work := await db.get_collection("workout").find_one_and_delete({"_id": my_workout_['_id']})) is not None:
         return JSONResponse(status_code=status.HTTP_200_OK, content=work)
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
