@@ -21,6 +21,9 @@ def random_email() -> str:
 def random_number() -> int:
     return random.randint(1, 100)
 
+def random_number_interval(a,b) ->int:
+    return random.randint(a,b)
+
 @pytest.mark.asyncio
 async def create_random_item_with_owner(collection_name,owner_id = None):
     if owner_id is None:

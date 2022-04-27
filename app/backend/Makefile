@@ -1,3 +1,3 @@
 .PHONY: test
 test:
-	cd app && PYTHONPATH=. pytest --asyncio-mode='auto' -s
+	cd app && PYTHONPATH=. pytest -m integtest -s

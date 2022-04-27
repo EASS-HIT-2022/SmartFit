@@ -14,7 +14,7 @@ async def get_exrecise(id: str) -> JSONResponse:
     raise HTTPException(status_code=404, detail=f"Exercise {id} not found")
 
 
-@router.get("/", tags=["Exercise"], response_model=List[Exercise], response_description='Get all exrecises details')
+@router.get("/", tags=["Exercise"], response_model=List[Exercise], response_description='Get all exercises details')
 async def get_all_exrecise() ->JSONResponse:
     exercises_list = []
     for ex in await db.get_collection("exercises").find().to_list(length=100):

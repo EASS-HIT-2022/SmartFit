@@ -1,9 +1,6 @@
-import pytest
 from core.config import settings
-from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
-from db import db
-from .....utils.utils import create_random_item_with_owner,create_random_item_without_owner, create_random_user, random_lower_string,random_number, user_authentication_headers
+from .....utils.utils import random_lower_string,random_number
 
 FOOD_ID ='5e9f8f8f8f8f8f8f8f8f8f8'
 

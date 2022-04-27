@@ -1,4 +1,3 @@
-from typing import Dict
 import pytest
 from core.config import settings
 from models.User import UserCreate
@@ -23,8 +22,8 @@ async def test_create_user_existing_username(client:TestClient) -> None:
     assert "_id" not in created_user
 
 
-@pytest.mark.asyncio
-async def test_create_user(client:TestClient):
+
+def test_create_user(client:TestClient):
     email = random_email()
     password = random_lower_string()
     user = UserCreate(email=email, password=password, full_name='test')

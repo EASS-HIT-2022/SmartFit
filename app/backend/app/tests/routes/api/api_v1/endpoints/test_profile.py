@@ -1,56 +1,16 @@
 from core.config import settings
 from fastapi.testclient import TestClient
-from db import db
-from .....utils.utils import create_random_item_with_owner, create_random_item_without_owner, create_random_user, random_lower_string, random_number, user_authentication_headers
+from .....utils.utils import  random_number_interval
 
-FOOD_ID = '5e9f8f8f8f8f8f8f8f8f8f8'
-
-# if test menu has a menu tests will fail need to delete them from db before running tests
-
+USER_ID = '6d09a53a-94c2-4a13-b6cb-ab1f91bb29b7'
 
 def test_create_user_profile(client: TestClient, normal_user_token_headers) -> None:
 	response = client.post(
-		f"{settings.API_V1_STR}/profile/new", headers=normal_user_token_headers
-	)
-
-	assert response.status_code == 200 or response.status_code == 201
-	content = response.json()
-	assert "_id" in content
-
-
-def test_get_menu(client: TestClient, normal_user_token_headers) -> None:
-	response = client.get(
-		f"{settings.API_V1_STR}/menu/", headers=normal_user_token_headers
-	)
-
-	assert response.status_code == 200 or response.status_code == 201
-	content = response.json()
-	assert "_id" in content
-
-
-def test_get_user_menu(client: TestClient, normal_user_token_headers) -> None:
-	userid = settings.TEST_USER_ID
-	response = client.get(
-		f"{settings.API_V1_STR}/menu/{userid}", headers=normal_user_token_headers
-	)
-	assert response.status_code == 200 or response.status_code == 201
-	content = response.json()
-	assert "_id" in content
-
-
-def test_add_my_menu_food(client: TestClient, normal_user_token_headers) -> None:
-	response = client.post(
-		f"{settings.API_V1_STR}/menu/add_food", headers=normal_user_token_headers, json={
-                    '_id': FOOD_ID,
-                    'name': random_lower_string(),
-                				'grams': random_number(),
-                				'type': random_lower_string(),
-                				'calories': random_number(),
-                				'fat': random_number(),
-                				'carbs': random_number(),
-                				'protein': random_number(),
-                				'alternatives': [],
-
+		f"{settings.API_V1_STR}/profile/new", headers=normal_user_token_headers ,json={
+				'email': settings.EMAIL_TEST_USER,
+				'height': random_number_interval(100,300),
+				'weight': random_number_interval(40,200),
+				'age': random_number_interval(12,120)
 		}
 	)
 	assert response.status_code == 200 or response.status_code == 201
@@ -58,24 +18,61 @@ def test_add_my_menu_food(client: TestClient, normal_user_token_headers) -> None
 	assert "_id" in content
 
 
-def test_del_food_from_my_menu(client: TestClient, normal_user_token_headers) -> None:
-	response = client.delete(
-		f"{settings.API_V1_STR}/menu/delete_food?food_id={FOOD_ID}", headers=normal_user_token_headers
+def test_get_my_profile(client: TestClient, normal_user_token_headers) -> None:
+	response = client.get(
+		f"{settings.API_V1_STR}/profile/", headers=normal_user_token_headers
+	)
+
+	assert response.status_code == 200 or response.status_code == 201
+	content = response.json()
+	assert "_id" in content
+
+
+def test_edit_my_pofile(client: TestClient, normal_user_token_headers) -> None:
+	response = client.patch(
+		f"{settings.API_V1_STR}/profile/edit", headers=normal_user_token_headers,json={
+				"email":'exaxa@exa.com',
+				'height':190,
+				"weight": 75,
+				"age": 25,
+				"BMI": 110,
+				"is_premium": False,
+				"fav_split": "AB",
+				"goal": "Gain Weight"
+		}	
+	)
+	assert response.status_code == 200 or response.status_code == 201
+	content = response.json()
+	assert "_id" in content
+	assert content['age'] == 25
+
+
+def test_get_user_profile(client: TestClient, normal_user_token_headers) -> None:
+	response = client.get(
+		f"{settings.API_V1_STR}/profile/{USER_ID}", headers=normal_user_token_headers
 	)
 	assert response.status_code == 200 or response.status_code == 201
 	content = response.json()
 	assert "_id" in content
 
 
-def test_del_my_menu(
+def test_get_all_profiles(client: TestClient, normal_user_token_headers) -> None:
+	response = client.get(
+		f"{settings.API_V1_STR}/profile/profiles/all", headers=normal_user_token_headers
+	)
+
+	assert response.status_code == 200 or response.status_code == 201
+	content = response.json()
+
+	assert isinstance(content,list) ==True
+
+
+def test_del_my_profile(
     client: TestClient, normal_user_token_headers
 ) -> None:
 
-    response = client.delete(
-        f"{settings.API_V1_STR}/menu/", headers=normal_user_token_headers
-    )
-
-    assert response.status_code == 200 or response.status_code == 201
-
-
-# user_authentication_headers(client,email = random_user['email'],password = random_user['password'])
+	response = client.delete(
+		f"{settings.API_V1_STR}/profile/del", headers=normal_user_token_headers
+	)
+ 
+	assert response.status_code == 200 or response.status_code == 201

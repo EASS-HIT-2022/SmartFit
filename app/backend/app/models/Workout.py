@@ -11,7 +11,7 @@ class WorkoutBase(BaseModel):
 
 class WorkoutCreate(BaseModel):
     number_of_days_per_week: int = Field(default=3)
-    exrecises: List[Exercise] = Field(default=[])
+    exercises: List[Exercise] = Field(default=[])
 
     class Config:
         schema_extra = {

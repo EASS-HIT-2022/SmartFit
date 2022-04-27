@@ -10,8 +10,7 @@ from main import app
 from .utils.utils import authentication_token_from_email
 
 
-
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def client() -> Generator:
     with TestClient(app) as client:
         yield client

@@ -92,6 +92,7 @@ async def delete_food_from_menu(food_id: str,current_user: UserInDBBase = Depend
     except HTTPException as e:
         raise HTTPException(
             status_code=404, detail=f"menu for current user not found")
+    
     menu = json.loads(menu.body)
     menu = Menu(
         **{**menu, 'foods': [food for food in menu['foods'] if food['_id'] != food_id]})

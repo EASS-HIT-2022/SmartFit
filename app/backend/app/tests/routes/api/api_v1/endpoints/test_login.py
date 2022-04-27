@@ -1,7 +1,4 @@
-from typing import Dict
-
 from fastapi.testclient import TestClient
-
 from core.config import settings
 
 def test_get_access_token(client: TestClient) -> None:
