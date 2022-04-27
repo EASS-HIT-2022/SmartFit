@@ -6,6 +6,7 @@ from db import db
 from .....utils.utils import create_random_item_with_owner,create_random_item_without_owner, create_random_user, random_lower_string,random_number, user_authentication_headers
 
 FOOD_ID ='5e9f8f8f8f8f8f8f8f8f8f8'
+
 # if test menu has a menu tests will fail need to delete them from db before running tests
 
 def test_create_user_base_menu(client: TestClient, normal_user_token_headers) -> None:
@@ -52,6 +53,7 @@ def test_add_my_menu_food(client: TestClient, normal_user_token_headers) -> None
 				'fat': random_number(),
 				'carbs': random_number(),
 				'protein': random_number(),
+				'alternatives': [],
 
 		}
 	)
@@ -67,8 +69,6 @@ def test_del_food_from_my_menu(client: TestClient, normal_user_token_headers) ->
 	assert response.status_code == 200 or response.status_code == 201
 	content = response.json()
 	assert "_id" in content
-
-
 
 
 

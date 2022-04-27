@@ -1,7 +1,9 @@
 from datetime import datetime
-from typing import List
+from typing import List, Union
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
 from fastapi.encoders import jsonable_encoder
+from matplotlib.font_manager import json_load
+from sympy import Q
 from models.User import UserInDBBase
 from models.Food import Food
 from models.Menu import Menu
@@ -9,6 +11,9 @@ from fastapi.responses import JSONResponse
 from datetime import datetime
 from db import db
 from ..deps import get_current_active_user
+import json
+
+
 
 router = APIRouter()
 
@@ -25,6 +30,10 @@ def calc_menu_data(menu: Menu):
         calories_from_carbs += food.carbs
     menu.total_calories, menu.calories_from_fat, menu.calories_from_protien, menu.calories_from_carbs = total_calories, calories_from_fat, calories_from_protien, calories_from_carbs
     return menu
+
+
+def multiple_appends(listname, *element):
+    listname.extend(element)
 
 
 @router.get("/", tags=["Menu"], description='Get my menu details')
@@ -54,16 +63,20 @@ async def my_menu_delete(current_user: UserInDBBase = Depends(get_current_active
 
 
 @ router.post("/add_food", tags=["Menu"], description="Add food to menu")
-async def add_food_to_menu(current_user: UserInDBBase = Depends(get_current_active_user), food: List[Food] = Body(...)) -> JSONResponse:
+async def add_food_to_menu(current_user: UserInDBBase = Depends(get_current_active_user), food: Union[Food,List[Food]] = Body(...)) -> JSONResponse:
     try:
         menu = await my_menu(current_user)
     except HTTPException as e:
         raise HTTPException(
             status_code=404, detail=f"menu for current user not found")
+    menu = json.loads(menu.body)
     menu = Menu(**menu)
     if menu.time_created == None:
         menu.time_created = datetime.now()
-    menu.foods.extend(food)
+    if isinstance(food, Food):
+        menu.foods.append(food)
+    elif isinstance(food, List):
+        menu.foods.extend(food)
     menu = jsonable_encoder(calc_menu_data(menu))
     result = await db.get_collection('menu').replace_one({'_id': menu['_id']}, menu)
     if result.modified_count == 1:
@@ -79,7 +92,7 @@ async def delete_food_from_menu(food_id: str,current_user: UserInDBBase = Depend
     except HTTPException as e:
         raise HTTPException(
             status_code=404, detail=f"menu for current user not found")
-
+    menu = json.loads(menu.body)
     menu = Menu(
         **{**menu, 'foods': [food for food in menu['foods'] if food['_id'] != food_id]})
     menu = jsonable_encoder(calc_menu_data(menu))

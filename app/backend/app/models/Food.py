@@ -1,4 +1,5 @@
 from __future__ import annotations
+from email.policy import default
 import uuid
 from typing import List
 from pydantic import UUID4, BaseModel, Field, conlist
@@ -19,7 +20,7 @@ class Food(BaseModel):
     cholesterol: float = 0
     saturated_fat: float = 0
     alternatives: conlist(item_type=Food, min_items=0,
-                          max_items=10, unique_items=True) =[]
+                          max_items=10, unique_items=True) = []
 
     class Config:
         schema_extra = {
