@@ -12,13 +12,18 @@ Rignt now I've accomplished with basic CRUD operations such as adding one's prof
 
 ## Run:✅
 
-> docker-compose up -d --build
+> docker-compose --env-file ./.env  up -d --build
 
 and then [http://localhost:8070/]()
 
 Please first sign up and then you will be authenticated to do rest operations
 
 if you already have a user click on green Authorize button
+
+if you wish to run the app in another port on host server side or docker port you can do it by changing 
+the ports number in .env file and run the same command as before
+
+
 
 ## Tests:✅
 
@@ -30,11 +35,9 @@ to run test on main app folder run
 
 * Frontend
 * the ML model
-* API of exercises?
 
 ## To Fix:✅
 
 * more generic CRUD operations
 * tests
 * maybe try to handle the db with docker
-* env varbs for ports server db etc

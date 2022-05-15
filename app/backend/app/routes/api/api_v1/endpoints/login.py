@@ -6,6 +6,7 @@ from models.User import UserInDBBase
 from fastapi.security import OAuth2PasswordRequestForm
 from core.secuirty import authenticate_user, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, Token
 from ..deps import get_current_active_user
+from fastapi.encoders import jsonable_encoder
 router = APIRouter()
 
 
@@ -25,7 +26,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     )
     return JSONResponse(status_code=status.HTTP_201_CREATED, content={"access_token": access_token, "token_type": "bearer"})
 
-
-@router.get("/me", tags=["Login"], description='User Creation', response_model=UserInDBBase)
+## get user by token
+@router.get("/me", tags=["Login"], description='Active User', response_model=UserInDBBase)
 async def read_users_me(current_user: UserInDBBase = Depends(get_current_active_user)) -> JSONResponse:
-    return JSONResponse(status_code=status.HTTP_200_OK, content=current_user)
+    return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(current_user))

@@ -3,7 +3,10 @@ version: '3.8'
 services:
   backend:
     build: ./backend
+    environment:
+      - SERVER_PORT=${SERVER_PORT}
+      - DOCKER_SERVER_PORT=${DOCKER_SERVER_PORT}
     ports:
-      - 8070:8070
+      - ${SERVER_PORT}:${DOCKER_SERVER_PORT}
 
   

@@ -1,4 +1,8 @@
 from pydantic import BaseModel
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class CommonSettings(BaseModel):
@@ -17,7 +21,7 @@ class ServerSettings(BaseModel):
     Server settings for app
     """
     SERVER_HOST: str = "0.0.0.0"
-    SERVER_PORT: int = 8070
+    SERVER_PORT: int = int(os.environ.get('SERVER_PORT'))
     API_V1_STR: str = "api/api_v1"
 
 class DatabaseSettings(BaseModel):

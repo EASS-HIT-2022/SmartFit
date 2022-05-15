@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
+
 from ..deps import get_current_active_user
-from models.Profile import Profile, ProfileCreate
+from models.Profile import Profile, ProfileCreate,ProfileUpdate
 from models.User import UserInDBBase
 from fastapi.encoders import jsonable_encoder
 from db import db
@@ -34,9 +35,8 @@ async def my_profile_create(current_user: UserInDBBase = Depends(get_current_act
 
 
 @ router.patch("/edit", tags=["Profile"], description='Edit my profile')
-async def my_profile_edit(current_user: UserInDBBase = Depends(get_current_active_user), profile: ProfileCreate = Body(..., example={
+async def my_profile_edit(current_user: UserInDBBase = Depends(get_current_active_user), profile: ProfileUpdate = Body(..., example={
     'weight': 75,
-    "email":'exaxa@exa.com',
     'height':190,
     'age': 25,
     'BMI': 110,

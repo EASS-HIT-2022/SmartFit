@@ -2,8 +2,6 @@ from datetime import datetime
 from typing import List, Union
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
 from fastapi.encoders import jsonable_encoder
-from matplotlib.font_manager import json_load
-from sympy import Q
 from models.User import UserInDBBase
 from models.Food import Food
 from models.Menu import Menu

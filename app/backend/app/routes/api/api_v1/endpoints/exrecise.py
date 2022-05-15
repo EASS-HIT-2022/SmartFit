@@ -3,23 +3,58 @@ from fastapi import APIRouter, HTTPException, status
 from models.Exercise import Exercise
 from db import db
 from fastapi.responses import JSONResponse
-
+import requests
 router = APIRouter()
 
+headers = {
+	"X-RapidAPI-Host": "exercisedb.p.rapidapi.com",
+	"X-RapidAPI-Key": "64e2f185e8msh834237bd8e7387dp16b82fjsncaefad30e0e6"
+}
+
+base_url = "https://exercisedb.p.rapidapi.com/exercises"
+
+
+@router.get("/target_muscles", tags=["Exercise"], description='Get all target muscles details')
+def get_list_of_target_muscles() -> JSONResponse:
+    try:
+        target_muscles = requests.request('GET',base_url+'/targetList',headers=headers)
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content=target_muscles.json())
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Target Muscles not Found")
+
+
+
+@router.get("/name/{name}", tags=["Exercise"], description='Get speseific exrecise details')
+async def get_exrecise_by_name(name: str) -> JSONResponse:
+    try:
+        exrecise = requests.request('GET',base_url+'/name/'+name,headers=headers)
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content=exrecise.json())
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Exrecise not Found")
 
 @router.get("/{id}", tags=["Exercise"], description='Get speseific exrecise details')
-async def get_exrecise(id: str) -> JSONResponse:
-    if (ex := await db.get_collection("exercises").find_one({"_id": id})) is not None:
-        return JSONResponse(status_code=status.HTTP_201_CREATED, content=ex)
-    raise HTTPException(status_code=404, detail=f"Exercise {id} not found")
+async def get_exrecise_by_id(id: str) -> JSONResponse:
+    try:
+        exrecise = requests.request('GET',base_url+'/exercise/'+id,headers=headers)
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content=exrecise.json())
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Exrecise not Found")
 
 
-@router.get("/", tags=["Exercise"], response_model=List[Exercise], response_description='Get all exercises details')
-async def get_all_exrecise() ->JSONResponse:
-    exercises_list = []
-    for ex in await db.get_collection("exercises").find().to_list(length=100):
-        exercises_list.append(ex)
-    if len(exercises_list) > 0:
-        return JSONResponse(status_code=status.HTTP_201_CREATED, content=exercises_list)
-    else:
-        raise HTTPException(status_code=404, detail="No exercises found")
+@router.get("/target_muscles/{muscle}", tags=["Exercise"], description='Get all exrecises for a spesific target muscle')
+def get_list_of_exrecises_of_target_muscle(muscle:str) -> JSONResponse:
+    try:
+        target_muscles = requests.request('GET',base_url+'/target/'+muscle,headers=headers)
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content=target_muscles.json())
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Target Muscles not Found")
+
+
+
+@router.get("/", tags=["Exercise"], description='Get all exrecises')
+def get_list_of_all_exrecises() -> JSONResponse:
+    try:
+        exrecises = requests.request('GET',base_url,headers=headers)
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content=exrecises.json())
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Target Muscles not Found")
